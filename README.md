@@ -1,25 +1,34 @@
-# C++23 Exotic Derivatives Pricing & Risk Library — Public Documentation
+# C++23 Exotic Derivatives Pricing & Risk Library — Public CLI Demo
 
-Documentation of a private C++23 library and CLI for pricing European, Asian and continuously monitored
-barrier options under geometric Brownian motion (GBM). Combines analytical
-valuation, Monte Carlo variance reduction, parallel five-factor risk and
+Binary-only demonstration of a private C++23 library for pricing European, Asian
+and continuously monitored barrier options under geometric Brownian motion (GBM).
+Combines analytical valuation, Monte Carlo variance reduction, parallel five-factor risk and
 selectable implied-volatility solvers.
 
 The financial focus is valuation with explicit sampling uncertainty and first-
 and second-order sensitivities. Analytical prices, parity relationships and
 seeded experiments provide checks on the numerical methods.
 
-This public folder explains the original project and includes its architecture,
-numerical validation and UML diagrams. Source code, tests and executable
-binaries remain private.
+This public repository includes the compiled Linux x86-64 CLI, architecture,
+numerical validation and UML diagrams. The C++ source, headers and test code
+remain private.
 
-The intended demonstration is browser-only: visitors enter the documented CLI
-commands and see results from a private Linux service. No local installation,
-executable download or repository fork is required.
+## Run in GitHub Codespaces
 
-**Web demo status:** the interface and hosted backend are not implemented yet.
-The commands below document the existing program; they are not local download
-instructions.
+1. [Open this repository in GitHub Codespaces](https://codespaces.new/JIMorlanes/exotic-derivatives-pricing-risk-public-library?quickstart=1),
+   or select **Code → Codespaces → Create codespace on main** on GitHub.
+2. Wait for the container setup to finish.
+3. Run the commands below in the Codespace terminal, starting with:
+
+```sh
+pricing_cli --help
+```
+
+The container uses the supplied `bin/pricing_cli` executable and adds `bin/` to
+`PATH`. It installs the Linux runtime libraries; it does not compile the project.
+A GitHub account is required, and Codespaces usage is subject to your account's
+allowance. If you created a Codespace before this configuration was added,
+rebuild its container.
 
 ## CLI demonstration
 
@@ -133,9 +142,9 @@ UML diagrams (PNG):
 4. [Implied volatility and solvers](./docs/uml/04_implied_volatility_solvers.png)
 5. [Finite-difference risk and Hessian](./docs/uml/05_risk_numerics_detail.png)
 
-## Web command examples
+## CLI command examples
 
-The web interface will use the existing CLI command syntax shown below.
+Run these commands in the Codespace terminal.
 
 ```sh
 # Analytical European call

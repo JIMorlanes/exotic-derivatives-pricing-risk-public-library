@@ -1,0 +1,12 @@
+{
+  "name": "Exotic Derivatives CLI (Linux binary)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/bin:${containerEnv:PATH}"
+  },
+  "postCreateCommand": "chmod +x bin/pricing_cli && ./bin/pricing_cli --help",
+  "waitFor": "postCreateCommand"
+}
