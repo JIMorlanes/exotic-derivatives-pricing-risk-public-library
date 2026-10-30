@@ -10,7 +10,7 @@ current application, including reuse of the base `PricingResult` in risk reports
 
 Class views: [API and products](#21-request-domain-values-and-engine-contract),
 [pricing and simulation](#22-pricing-simulation-and-policy-types),
-[risk](#23-risk-engine-and-result-structures), and
+[risk](#23-risk-engine-and-result-structures) and
 [IV solvers](#24-implied-volatility-and-numerical-solvers).
 
 ## Reading the diagrams
@@ -28,8 +28,8 @@ Class views: [API and products](#21-request-domain-values-and-engine-contract),
   declarations. They are not new classes. Variant alternatives are mutually
   exclusive; an object does not contain all alternatives simultaneously.
 - Class identifiers are unqualified for readability; their source paths and
-  namespaces are identified below. Operation parameter lists in diagrams are
-  abbreviated. Exact C++ declarations remain private; diagram signatures are abbreviated.
+  namespaces are identified below. Operation signatures in diagrams are
+  abbreviated; exact C++ declarations remain private.
 - Sequence lifelines denote actual objects, free functions, lambdas or external
   library functions. The risk callback is one shared CLI lambda; its captured
   request and base result are read-only. The local-engine lifeline represents
@@ -95,9 +95,9 @@ flowchart TB
 ```
 
 These are source-level layers, not separate services or separate API libraries.
-CMake builds one `qf` library, the `pricing_cli` executable, two demonstration
-executables and the registered tests. `qf` publicly links Boost headers and
-Threads. Risk uses Boost.Asio and Boost.uBLAS; Eigen3 is not a current project
+In the private project, CMake builds one `qf` library, the `pricing_cli` executable,
+two demonstration executables and the registered tests. `qf` publicly links
+Boost headers and Threads. Risk uses Boost.Asio and Boost.uBLAS; Eigen3 is not a current project
 dependency. Python is used only by the CLI integration test. Representative pricing
 and risk measurements are in [Numerical validation](numerical_validation.md).
 
@@ -122,7 +122,7 @@ discrete-only monitoring algorithm.
 
 ## 2. UML class diagrams
 
-The class view is divided into three diagrams to avoid a single dense graph.
+The class view is divided into four diagrams to avoid a single dense graph.
 Repeated names denote the same existing types in different views.
 
 ### 2.1 Request, domain values and engine contract
@@ -387,7 +387,7 @@ identity after simulating the requested paths. See the
 
 Dynamic polymorphism provides a common API contract for callers. Static
 polymorphism binds model, RNG and statistics policies at compile time, exposing
-concrete types for compiler specialization and inlining. Variant dispatch
+concrete types for compiler specialisation and inlining. Variant dispatch
 connects runtime product selection to product-specific compiled code.
 
 | Mechanism | Actual implementation |
@@ -538,7 +538,7 @@ price. Newton also receives a derivative lambda calling the static analytical
 `BlackScholesGreeks::vega`; `Newton` itself knows nothing about Black-Scholes.
 The CLI's risk Greeks still come from `RiskReport`, not this derivative helper.
 
-| Selected CLI solver | Existing return contract | IV adaptation and behavior |
+| Selected CLI solver | Existing return contract | IV adaptation and behaviour |
 |---|---|---|
 | `toms748` (default) | `double` | Calls the existing Boost.Math `toms748_solve` wrapper, checks bracket width and returns its midpoint. Nonconvergence throws. |
 | `bisection` | `RootResult` | Requires a bracket; IV checks `converged` before returning `root`. |
@@ -575,7 +575,7 @@ sequenceDiagram
     Customer->>CLI: main(argc, argv) with price command
     CLI->>CLI: parse_arguments(argc, argv)
     CLI->>CLI: parse_request(args, false) and parse_product(...)
-    CLI->>Request: Aggregate initialization of market, product, model, simulation, method
+    CLI->>Request: Aggregate initialisation of market, product, model, simulation, method
     Note over Request: EuropeanOption, GBMParameters tag, paths=100000, seed=42, MonteCarlo
     CLI->>CLI: print_price(request)
     CLI->>Engine: price(request)
@@ -635,7 +635,7 @@ sequenceDiagram
     CLI->>CLI: Retain result#59; validate bumps and threads
     CLI->>Risk: RiskEngine(seed, threads)
     CLI->>Risk: calculate(market, maturity, bumps, price_at)
-    Risk->>Risk: Validate inputs, then initialize report and construct base / up / down states
+    Risk->>Risk: Validate inputs, then initialise report and construct base / up / down states
     Risk->>Callback: price_at(base_market, maturity, _seed)
     Callback->>Callback: Match original state and seed
     Callback-->>Risk: Cached base_result.price without another simulation
@@ -795,28 +795,3 @@ No relationships are inferred merely from directory names.
 | CMake links Boost headers and Threads; risk matrices use Boost.uBLAS. Eigen3 is not required or installed by CI. | The diagrams show the current Boost-based risk types. |
 | Asian and barrier products own their schedules and expose const-reference getters. | Barrier options, `OptionProduct` and `PricingRequest` support ordinary copy and move assignment without exposing mutable schedule access. |
 | Root-solver return types and stopping criteria differ. | The IV wrapper adapts the existing contracts; the three solvers do not implement a common interface. |
-
-The earlier documentation was inconsistent with the current code: it included
-a removed `MonteCarloSettings::time_steps`, the old `Arithmatic` spelling and an
-owned IV `_solver`, and described Bisection/Newton as unselected library-only
-components. Those descriptions are corrected here and in the README. No source
-or build configuration was changed to reconcile these documentation differences.
-
-### Mermaid compatibility and verification limits
-
-The diagrams use ordinary `flowchart`, `classDiagram` and `sequenceDiagram`
-fences supported by [GitHub's Mermaid integration](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams).
-They avoid newer namespace, shape and participant-creation extensions. Template
-parameters containing commas are written in prose/signature blocks rather than
-Mermaid generic class labels, following the documented
-[class-diagram limitations](https://mermaid.js.org/syntax/classDiagram.html).
-Parallel batches use the documented
-[sequence-diagram notation](https://mermaid.js.org/syntax/sequenceDiagram.html).
-
-The Mermaid CLI is not on the current PATH, and no local Mermaid parser was
-used. The diagrams were checked against the official notation and reviewed
-structurally; source symbols, relationship endpoints and local links were also
-checked. Actual Mermaid parsing and SVG rendering were not run locally. GitHub
-rendering therefore remains a visual verification step, rather than a claimed
-completed render. The original Mermaid verification limits above are separate from the five
-rendered PNG views included in this package.
