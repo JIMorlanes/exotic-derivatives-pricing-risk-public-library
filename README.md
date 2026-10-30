@@ -50,32 +50,6 @@ Running the command from step 4 in the Codespace produces:
 
 ![European call: price, Greeks and full 5×5 Hessian](docs/images/cli-european-risk.png)
 
-```text
-PRICING & RISK REPORT | European Call | Model: GBM
-Method: Analytical
-
-OPTION PRICE               :          9.227005508
-
-GREEKS
-Delta                      :          0.586851139
-Gamma                      :          0.018950579
-Vega                       :         37.901145296
-Theta (per year)           :         -5.089322765
-Rho                        :         49.458046284
-Carry sensitivity          :        -58.685148083
-
-dPrice/dMaturity           :          5.089322765
-Theta = -dPrice/dMaturity (annual time-decay convention).
-Vega, Rho and carry sensitivities are per unit decimal input change.
-
-HESSIAN            Spot     Volatility           Rate          Carry       Maturity
-Spot        0.018950579   -0.094759852    1.895050403   -2.481901403    0.035639476
-Volatility -0.094759852    2.368927795  -47.376556463    9.475872700   17.008146545
-Rate        1.895050403  -47.376556463  140.047339741 -189.504259675   47.932582352
-Carry      -2.481901403    9.475872700 -189.504259675  248.190525099  -62.249139716
-Maturity    0.035639476   17.008146545   47.932582352  -62.249139716   -2.236853730
-```
-
 ### Monte Carlo with a control variate
 
 Arithmetic Asian call with a geometric Asian control variate (four quarterly fixings, 100,000 paths and seed 42):
@@ -87,18 +61,6 @@ pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
 ```
 
 ![Arithmetic Asian call: control-variate Monte Carlo price and uncertainty](docs/images/cli-asian-cv.png)
-
-```text
-PRICING REPORT | Arithmetic Asian Call | Model: GBM
-Method: Control-variate Monte Carlo
-
-OPTION PRICE               :          6.200066455
-
-MONTE CARLO ESTIMATE
-Standard error             :          0.000816064
-95% confidence interval    : [6.198466981, 6.201665930]
-Paths                      :               100000
-```
 
 ## Pricing and risk capabilities
 
