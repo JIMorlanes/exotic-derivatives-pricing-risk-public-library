@@ -34,6 +34,8 @@ This repository contains the compiled Linux CLI, architecture documentation with
      --method cv --paths 100000 --seed 42
    ```
 
+   ![Arithmetic Asian call: control-variate Monte Carlo price and uncertainty](docs/images/cli-asian-cv.png)
+
 5. The report shows the option price, Monte Carlo standard error, confidence
    interval and path count. See the recorded example below, run
    `pricing_cli --help` for all commands, or try the risk example in
@@ -56,12 +58,12 @@ PRICING REPORT | Arithmetic Asian Call | Model: GBM
 ============================================================================================
 Method: Control-variate Monte Carlo
 
-OPTION PRICE               :          6.199636815
+OPTION PRICE               :          6.200066455
 -------------------------------------------------
 
 MONTE CARLO ESTIMATE
-Standard error             :          0.000808325
-95% confidence interval    : [6.198052508, 6.201221122]
+Standard error             :          0.000816064
+95% confidence interval    : [6.198466981, 6.201665930]
 Paths                      :               100000
 ```
 
@@ -166,7 +168,11 @@ pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
 # Price, Greeks and full Hessian
 pricing_cli risk --type call --spot 100 --strike 100 --maturity 1 \
   --volatility 0.20 --rate 0.05 --carry 0.02 --threads 4
+```
 
+![European call: price, Greeks and full 5×5 Hessian](docs/images/cli-european-risk.png)
+
+```sh
 # Select any of the three IV solvers; --method is reserved for pricing
 pricing_cli iv --type call --spot 100 --strike 100 --maturity 1 \
   --rate 0.05 --carry 0.02 --market-price 9.227005508154036 --solver newton
