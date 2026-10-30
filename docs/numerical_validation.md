@@ -1,11 +1,13 @@
 # Numerical validation: four representative cases
 
-This report preserves the original private-project results. Source and test
-names refer to the private implementation; this public repository contains the
-Linux CLI executable, documentation and diagrams. Source files and tests remain
-private.
+This report combines current Linux CLI measurements with original private-project
+validation records. Source and test names refer to the private implementation;
+this public repository contains the Linux CLI executable, documentation and
+diagrams. Source files and tests remain private.
 
-Recorded **2026-10-27** from the actual C++23 Release test executables.
+Sections B and C use Linux Codespaces CLI output supplied on **2026-10-30**.
+Sections A and D retain the original macOS Release-test results recorded on
+**2026-10-27**. The complete six-case Linux comparison is in the README.
 This report covers only four representative cases. The additional parameter
 grids and repeated-seed experiments have been removed; existing core unit tests
 are retained. No pricing formulas or model features were changed.
@@ -20,9 +22,10 @@ risk-neutral GBM drift is `r - q`. Unless a case overrides them, parameters are:
 | Volatility | 0.20 |
 | Risk-free rate / dividend yield | 0.05 / 0.02 |
 
-Results below come from full-precision test output and are rounded only for
-presentation. Analytical reference error, Monte Carlo standard error and a
-comparison between two estimates are distinguished explicitly.
+Sections A and D use full-precision private test records. Sections B and C use
+the CLI's nine-decimal output; their derived comparisons use those reported
+values. Analytical reference error, Monte Carlo standard error and a comparison
+between two estimates are distinguished explicitly.
 
 ## A. European options
 
@@ -66,18 +69,20 @@ This is a comparison at our chosen parameters, not a quoted textbook price.
 
 | Method | Estimate | Standard error | Nominal 95% interval |
 | --- | --- | --- | --- |
-| Plain MC | 6.210408504793 | 0.028662855854 | [6.154229307318, 6.266587702267] |
-| Control variate | 6.199636814876 | 0.000808324964 | [6.198052507882, 6.201221121869] |
+| Plain MC | 6.227787630 | 0.028642284 | [6.171648753, 6.283926507] |
+| Control variate | 6.200066455 | 0.000816064 | [6.198466981, 6.201665930] |
 
-The absolute **difference between estimates** is **0.010771689917**.
-The reported SE ratio is **35.46**, and the squared SE ratio is
-**1257.38**. These are estimated uncertainty reductions for this run,
+The absolute **difference between estimates** is **0.027721175**.
+The reported SE ratio is **35.10**, and the squared SE ratio is
+**1231.88**. These are estimated uncertainty reductions for this run,
 not measured runtime gains or empirical variance across independent seeds.
 
-The retained integration check requires the price difference to be at most
-`4 * (SE_plain + SE_control)`, here **0.117884723274**, and requires
+The original private integration check requires the price difference to be at most
+`4 * (SE_plain + SE_control)`, here **0.117833392**, and requires
 the control-variate SE to be smaller. The SE sum is a conservative scale for
 the correlated difference; it is not an independently estimated difference SE.
+The reported Linux values satisfy both inequalities; this comparison is not a
+rerun of the private test executable.
 
 There is no analytical arithmetic-Asian price in this comparison, so a true
 pricing error is **not available**. Plain MC uses estimate ± 1.96 SE; fitted CV
@@ -86,7 +91,7 @@ degrees of freedom. CV intervals are approximate for nonlinear payoffs and an
 in-sample fitted coefficient. One seeded comparison does not establish bias,
 convergence or confidence-interval coverage.
 
-Test: `asian_mc_and_control_variate_integration`.
+Original private regression test: `asian_mc_and_control_variate_integration`.
 Its existing put, geometric-pricing and reproducibility assertions are preserved.
 
 ## C. Barrier options
@@ -103,14 +108,14 @@ the simulation grid; the reference contract remains continuously monitored.
 
 | Published reference | MC estimate | Absolute error | Standard error | Nominal 95% interval |
 | --- | --- | --- | --- | --- |
-| 3.2407203551989525 | 3.206613945679 | 0.034106409519 | 0.027317495978 | [3.153071653563, 3.260156237796] |
+| 3.2407203551989525 | 3.206151383 | 0.034568972 | 0.027315764 | [3.152612485, 3.259690280] |
 
-The error is **1.248519 SE**. The existing regression criterion is
-absolute error ≤ **4 SE = 0.109269983911**, which passes. This is a
+The error is **1.265532 SE**. The existing regression criterion is
+absolute error ≤ **4 SE = 0.109263056**, which the reported Linux values satisfy. This is a
 normal-approximation sampling diagnostic, not a deterministic price tolerance
 or a claim of exact 95% coverage. No new barrier formula was added.
 
-Test: `down_and_out_matches_analytical_reference`.
+Original private regression test: `down_and_out_matches_analytical_reference`.
 
 ## D. Numerical risk
 
@@ -157,7 +162,7 @@ input-validation and analytical call/put Greek tests remain intact.
 Test: `test_risk_engine.cpp`, using the existing
 call report plus independent test-only analytical derivatives.
 
-## Original validation and command examples
+## Original macOS validation and command examples
 
 Recorded toolchain: macOS arm64, **Apple Clang 21.0.0**, **CMake 4.2.1**, C++23,
 Release (`-O3 -DNDEBUG`), Boost headers and OS threads. Python 3.12.15 runs the
@@ -165,16 +170,15 @@ existing CLI integration tests. There is no Eigen3 dependency. Standard-library
 normal generation can differ across platforms; bit-for-bit cross-toolchain MC
 results are not promised.
 
-**Observed: build succeeded; all 10 registered CTest tests passed, zero
+**Original macOS validation: build succeeded; all 10 registered CTest tests passed, zero
 failures (6.19 seconds for this suite run).** Test runtime is not a pricing
 performance or speedup benchmark. No extra statistical CTest targets remain.
 
-The macOS build and test executables used for the recorded results remain
-private. The following commands run the corresponding CLI cases using the
-supplied Linux executable in the Codespace terminal. CLI output uses nine
-decimal places; the original full-precision test records and independent
-reference calculations are not regenerated by these commands. Monte Carlo
-streams may differ across platforms.
+The macOS build and test executables used for sections A and D remain private.
+The commands below run corresponding CLI cases using the supplied Linux
+executable in the Codespace terminal. Sections B and C report measurements from
+this Linux CLI; they do not regenerate the original full-precision test records
+or independent reference calculations.
 
 ```sh
 # European analytical call
@@ -191,8 +195,8 @@ pricing_cli price --type call --spot 100 --strike 120 --maturity 1 --volatility 
 pricing_cli risk --type call --spot 100 --strike 100 --maturity 1 --volatility 0.20 --rate 0.05 --carry 0.02 --threads 2
 ```
 
-These four recorded cases provide focused regression evidence for the stated
-parameters; they do not establish validity over every contract or market
-configuration.
+These four cases provide focused evidence at the stated parameters. The Linux
+CLI comparisons in B and C supplement the original private validation; they do
+not establish validity over every contract or market configuration.
 
 See [README](../README.md) and [architecture documentation](architecture.md).
