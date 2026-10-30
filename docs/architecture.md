@@ -1,5 +1,9 @@
 # Architecture and UML: Exotic Derivatives Pricing & Risk Library
 
+The architecture is designed for extension to additional products and pricing
+models, with API contracts, product definitions and numerical policies kept
+separate.
+
 Public documentation of the private implementation. Source and test references
 identify the original project; those files are not distributed in this package.
 The five PNG views are available in [uml/](uml/).
@@ -382,6 +386,12 @@ stably online. CV uses residual degrees of freedom and a Boost.Math Student-t
 interval; with one fixing it instead uses the known arithmetic/geometric payoff
 identity after simulating the requested paths. See the
 [CV numerical treatment and regressions](numerical_validation.md#b-asian-options).
+
+### C++ language-standard use
+
+The project targets C++23. The implementation uses C++20 `std::span` for
+non-owning observation-schedule views and `std::latch` to synchronise parallel
+risk batches. Variant visitation and `if constexpr` are C++17 facilities.
 
 ### Runtime versus static polymorphism
 

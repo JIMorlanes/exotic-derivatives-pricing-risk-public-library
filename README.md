@@ -1,6 +1,6 @@
 # C++23 Exotic Derivatives Pricing & Risk Library
 
-A multiparadigm C++23 numerical library combining a polymorphic API, type-safe runtime dispatch and a template-based numerical core.
+A multiparadigm C++23 numerical library combining a polymorphic API, type-safe runtime dispatch and a template-based numerical core. API contracts, product definitions and numerical policies are kept separate, so the architecture can be extended to additional products and pricing models.
 
 - **Dynamic polymorphism at the API boundary**: a common `PricingEngine` interface separates callers from concrete engine implementations.
 - **Type-safe product dispatch**: `std::variant`, `std::visit` and `if constexpr` connect runtime product selection to compiled pricing branches.
@@ -117,6 +117,11 @@ uncertainty and reproduction commands accompany the results.
 **Original private validation: all 10 registered CTest tests passed locally.**
 
 ## C++23 engineering design
+
+**Language standard:** the project targets C++23. It uses C++20
+`std::span` for non-owning observation-schedule views and `std::latch` to
+synchronise parallel risk batches, alongside C++17 `std::variant`,
+`std::visit` and `if constexpr`.
 
 The following describes the private implementation behind the executables.
 
