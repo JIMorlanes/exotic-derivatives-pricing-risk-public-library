@@ -1,47 +1,54 @@
-# C++23 Exotic Derivatives Pricing & Risk Library — Public CLI Demo
+# C++23 Exotic Derivatives Pricing & Risk Library
 
-Binary-only demonstration of a private C++23 library for pricing European, Asian
-and continuously monitored barrier options under geometric Brownian motion (GBM).
-Combines analytical valuation, Monte Carlo variance reduction, parallel five-factor risk and
-selectable implied-volatility solvers.
+A multiparadigm C++23 numerical library combining a polymorphic API, type-safe runtime dispatch and a template-based numerical core.
 
-The financial focus is valuation with explicit sampling uncertainty and first-
-and second-order sensitivities. Analytical prices, parity relationships and
-seeded experiments provide checks on the numerical methods.
+- **Dynamic polymorphism at the API boundary**: a common `PricingEngine` interface separates callers from concrete engine implementations.
+- **Type-safe product dispatch**: `std::variant`, `std::visit` and `if constexpr` connect runtime product selection to compiled pricing branches.
+- **Static polymorphism in numerical components**: model, random-number generator and statistics policies are bound at compile time, exposing concrete types for compiler specialisation and inlining.
+- **Parallel risk calculation**: Boost.Asio distributes bumped repricings to compute a five-factor gradient and full 5×5 Hessian, with common random numbers to reduce noise in Monte Carlo sensitivity estimates.
+- **Streaming numerical statistics**: online moments and covariance accumulation keep working memory independent of the simulated path count for a fixed observation schedule.
 
-This public repository includes the compiled Linux x86-64 CLI, architecture,
-numerical validation and UML diagrams. The C++ source, headers and test code
-remain private.
+The implementation covers European, Asian and continuously monitored barrier options under GBM, with analytical and Monte Carlo pricing, variance reduction and documented numerical checks.
+
+In the documented 100,000-path arithmetic-Asian example, the geometric control variate reduced reported standard error by **35.46×**. For continuous zero-rebate barriers under GBM, Brownian-bridge survival weighting removes the monitoring bias from checking crossings only at simulated endpoints.
+
+This repository contains the compiled Linux CLI, architecture documentation with UML diagrams and the numerical validation report. The C++ source and tests remain private.
 
 ## Run in GitHub Codespaces
 
-1. [Open this repository in GitHub Codespaces](https://codespaces.new/JIMorlanes/exotic-derivatives-pricing-risk-public-library?quickstart=1),
-   or select **Code → Codespaces → Create codespace on main** on GitHub.
-2. Wait for the container setup to finish.
-3. Run the commands below in the Codespace terminal, starting with:
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/JIMorlanes/exotic-derivatives-pricing-risk-public-library?quickstart=1)
 
-```sh
-pricing_cli --help
-```
+1. Click the button above. A GitHub account is required; usage counts towards
+   your Codespaces allowance.
+2. Wait for the container setup to finish. Setup took about **35 seconds** in
+   an observed run; timing can vary. The demo runs the prebuilt CLI, so no
+   compilation is required.
+3. VS Code opens in your browser. Use the terminal at the bottom of the window.
+   If it is not visible, select **Terminal → New Terminal**.
+4. Paste this command to price an arithmetic Asian call with a geometric
+   control variate (four quarterly fixings, 100,000 paths and seed 42):
 
-The container uses the supplied `bin/pricing_cli` executable and adds `bin/` to
-`PATH`. It installs the Linux runtime libraries; it does not compile the project.
-A GitHub account is required, and Codespaces usage is subject to your account's
-allowance. If you created a Codespace before this configuration was added,
-rebuild its container.
+   ```sh
+   pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
+     --volatility 0.20 --rate 0.05 --carry 0.02 --product asian --average arithmetic --steps 4 \
+     --method cv --paths 100000 --seed 42
+   ```
+
+5. The report shows the option price, Monte Carlo standard error, confidence
+   interval and path count. See the recorded example below, run
+   `pricing_cli --help` for all commands, or try the risk example in
+   [CLI command examples](#cli-command-examples).
+
+The executable is Linux x86-64 only. Codespaces supplies the compatible Linux
+environment, so no local installation is needed. The container adds `bin/` to
+`PATH` and installs the required Linux runtime libraries.
+
+If you created a Codespace before this configuration was added, rebuild its
+container.
 
 ## CLI demonstration
 
-Arithmetic Asian call with a geometric Asian control variate: four quarterly
-fixings, 100,000 paths and seed 42.
-
-```sh
-pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
-  --volatility 0.20 --rate 0.05 --carry 0.02 --product asian --average arithmetic --steps 4 \
-  --method cv --paths 100000 --seed 42
-```
-
-Actual output from the Release executable:
+Running the command from step 4 produces this Linux CLI output:
 
 ```text
 ============================================================================================
@@ -104,7 +111,7 @@ is claimed.
 
 The [numerical validation report](docs/numerical_validation.md) focuses on four
 representative comparisons: analytical European calls/puts, arithmetic Asian
-MC versus control variate, a published continuous-barrier benchmark, and
+MC versus control variate, a published continuous-barrier benchmark and
 analytical Greeks with selected mixed Hessian entries. Parameters, errors,
 uncertainty and reproduction commands accompany the results.
 **Original private validation: all 10 registered CTest tests passed locally.**
@@ -125,7 +132,7 @@ CLI → PricingRequest → GBMPricingEngine → numerical pricers → PricingRes
   chooses its compiled branch.
 - **Static polymorphism in numerical components:** the model, RNG and statistics
   policies of `MonteCarloPricer<Model, RNG, Statistics>` are bound at compile time,
-  exposing concrete types for compiler specialization and inlining.
+  exposing concrete types for compiler specialisation and inlining.
   `PathGenerator<Model, RNG>` follows the same model/RNG policy design; references
   are non-owning.
 - Products own their fixing/monitoring schedules. Market inputs and pricing
@@ -170,10 +177,10 @@ control identity and accepts two paths; all requested paths are still simulated.
 
 ## Numerical methods and limitations
 
-GBM paths use the exact lognormal transition without Euler discretization,
-avoiding the associated time-discretization bias. Monte Carlo pricing uses a
+GBM paths use the exact lognormal transition without Euler discretisation,
+avoiding the associated time-discretisation bias. Monte Carlo pricing uses a
 streaming design to limit memory use: Welford's algorithm updates mean and sample
-variance in one pass with centered updates that reduce cancellation, while
+variance in one pass with centred updates that reduce cancellation, while
 control-variate covariance is accumulated online. Asian and barrier pricing
 retain running payoff aggregates instead of complete paths or payoff samples.
 For a fixed observation schedule, working memory per pricing call does not grow
