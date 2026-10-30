@@ -10,7 +10,7 @@ A multiparadigm C++23 numerical library combining a polymorphic API, type-safe r
 
 The implementation covers European, Asian and continuously monitored barrier options under GBM, with analytical and Monte Carlo pricing, variance reduction and documented numerical checks.
 
-In the documented 100,000-path arithmetic-Asian example, the geometric control variate reduced reported standard error by **35.46×**. For continuous zero-rebate barriers under GBM, Brownian-bridge survival weighting removes the monitoring bias from checking crossings only at simulated endpoints.
+In the documented 100,000-path arithmetic-Asian example, the geometric control variate reduced reported standard error by **35.10×**. For continuous zero-rebate barriers under GBM, Brownian-bridge survival weighting removes the monitoring bias from checking crossings only at simulated endpoints.
 
 This repository contains the compiled Linux CLI, architecture documentation with UML diagrams and the numerical validation report. The C++ source and tests remain private.
 
@@ -25,21 +25,15 @@ This repository contains the compiled Linux CLI, architecture documentation with
    compilation is required.
 3. VS Code opens in your browser. Use the terminal at the bottom of the window.
    If it is not visible, select **Terminal → New Terminal**.
-4. Paste this command to price an arithmetic Asian call with a geometric
-   control variate (four quarterly fixings, 100,000 paths and seed 42):
+4. Paste this command to price a European call and compute its Greeks and full 5×5 Hessian:
 
    ```sh
-   pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
-     --volatility 0.20 --rate 0.05 --carry 0.02 --product asian --average arithmetic --steps 4 \
-     --method cv --paths 100000 --seed 42
+   pricing_cli risk --type call --spot 100 --strike 100 --maturity 1 \
+     --volatility 0.20 --rate 0.05 --carry 0.02 --threads 4
    ```
 
-   ![Arithmetic Asian call: control-variate Monte Carlo price and uncertainty](docs/images/cli-asian-cv.png)
-
-5. The report shows the option price, Monte Carlo standard error, confidence
-   interval and path count. See the recorded example below, run
-   `pricing_cli --help` for all commands, or try the risk example in
-   [CLI command examples](#cli-command-examples).
+5. Then try Monte Carlo pricing with uncertainty reporting, as shown below, or run
+   `pricing_cli --help` for all commands.
 
 The executable is Linux x86-64 only. Codespaces supplies the compatible Linux
 environment, so no local installation is needed. The container adds `bin/` to
@@ -50,16 +44,55 @@ container.
 
 ## CLI demonstration
 
-Running the command from step 4 produces this Linux CLI output:
+### Price, Greeks and full Hessian
+
+Running the command from step 4 in the Codespace produces:
+
+![European call: price, Greeks and full 5×5 Hessian](docs/images/cli-european-risk.png)
 
 ```text
-============================================================================================
+PRICING & RISK REPORT | European Call | Model: GBM
+Method: Analytical
+
+OPTION PRICE               :          9.227005508
+
+GREEKS
+Delta                      :          0.586851139
+Gamma                      :          0.018950579
+Vega                       :         37.901145296
+Theta (per year)           :         -5.089322765
+Rho                        :         49.458046284
+Carry sensitivity          :        -58.685148083
+
+dPrice/dMaturity           :          5.089322765
+Theta = -dPrice/dMaturity (annual time-decay convention).
+Vega, Rho and carry sensitivities are per unit decimal input change.
+
+HESSIAN            Spot     Volatility           Rate          Carry       Maturity
+Spot        0.018950579   -0.094759852    1.895050403   -2.481901403    0.035639476
+Volatility -0.094759852    2.368927795  -47.376556463    9.475872700   17.008146545
+Rate        1.895050403  -47.376556463  140.047339741 -189.504259675   47.932582352
+Carry      -2.481901403    9.475872700 -189.504259675  248.190525099  -62.249139716
+Maturity    0.035639476   17.008146545   47.932582352  -62.249139716   -2.236853730
+```
+
+### Monte Carlo with a control variate
+
+Arithmetic Asian call with a geometric Asian control variate (four quarterly fixings, 100,000 paths and seed 42):
+
+```sh
+pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
+  --volatility 0.20 --rate 0.05 --carry 0.02 --product asian --average arithmetic --steps 4 \
+  --method cv --paths 100000 --seed 42
+```
+
+![Arithmetic Asian call: control-variate Monte Carlo price and uncertainty](docs/images/cli-asian-cv.png)
+
+```text
 PRICING REPORT | Arithmetic Asian Call | Model: GBM
-============================================================================================
 Method: Control-variate Monte Carlo
 
 OPTION PRICE               :          6.200066455
--------------------------------------------------
 
 MONTE CARLO ESTIMATE
 Standard error             :          0.000816064
@@ -92,7 +125,8 @@ All products support calls and puts.
 
 ## Measured numerical results
 
-Recorded on 2026-10-27; calls, 100,000 paths, seed 42. Base market:
+Recorded in GitHub Codespaces (Linux x86-64) on 2026-10-30; calls,
+100,000 paths, seed 42. Base market:
 S=K=100, T=1 year, volatility=20%, r=5%, q=2%; Asian fixings at
 0.25, 0.50, 0.75 and 1.00 years. The barrier reference case instead uses K=120,
 q=0, barrier=80 and 52 bridge intervals.
@@ -101,12 +135,12 @@ q=0, barrier=80 and 52 bridge intervals.
 | --- | --- | --- | --- |
 | European: plain MC | 9.227005508 | 9.288828450 | 0.044039111 |
 | European: antithetic MC | 9.227005508 | 9.229877274 | 0.032511041 |
-| Geometric Asian: MC | 6.016110665 | 6.026632045 | 0.027985661 |
-| Arithmetic Asian: MC | — | 6.210408505 | 0.028662856 |
-| Arithmetic Asian: control variate | — | 6.199636815 | 0.000808325 |
-| Down-and-out barrier: MC | 3.240720355 | 3.206613946 | 0.027317496 |
+| Geometric Asian: MC | 6.016110665 | 6.043182219 | 0.027959723 |
+| Arithmetic Asian: MC | — | 6.227787630 | 0.028642284 |
+| Arithmetic Asian: control variate | — | 6.200066455 | 0.000816064 |
+| Down-and-out barrier: MC | 3.240720355 | 3.206151383 | 0.027315764 |
 
-For the arithmetic Asian call, the control variate gave **35.46× lower
+For the arithmetic Asian call, the control variate gave **35.10× lower
 reported standard error** than plain MC at the same path count. This measures
 sampling uncertainty, not runtime speedup. No analytical arithmetic-Asian price
 is claimed.
@@ -168,11 +202,7 @@ pricing_cli price --type call --spot 100 --strike 100 --maturity 1 \
 # Price, Greeks and full Hessian
 pricing_cli risk --type call --spot 100 --strike 100 --maturity 1 \
   --volatility 0.20 --rate 0.05 --carry 0.02 --threads 4
-```
 
-![European call: price, Greeks and full 5×5 Hessian](docs/images/cli-european-risk.png)
-
-```sh
 # Select any of the three IV solvers; --method is reserved for pricing
 pricing_cli iv --type call --spot 100 --strike 100 --maturity 1 \
   --rate 0.05 --carry 0.02 --market-price 9.227005508154036 --solver newton
